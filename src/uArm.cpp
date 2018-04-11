@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file	uArmClass.cpp
-  * @author	David.Long	
+  * @author	David.Long
   * @email	xiaokun.long@ufactory.cc
   * @date	2016-09-28
   * @license GNU
@@ -9,7 +9,7 @@
   ******************************************************************************
   */
 
-#include "uArm.h" 
+#include "uArm.h"
 
 #include "uArmComm.h"
 
@@ -22,7 +22,7 @@ uArmClass::uArmClass()
 	mTotalSteps = -1;
     mRecordAddr = 0;
 
-    mReportInterval = 0; 
+    mReportInterval = 0;
 
     mReportStartTime = millis();
     mTickStartTime = millis();
@@ -44,7 +44,7 @@ void uArmClass::initHardware()
     pinMode(SYS_LED, OUTPUT);
 
     digitalWrite(PUMP_EN, HIGH);//keep the pump off
-    #endif 
+    #endif
 
     #ifdef METAL
 	pinMode(VALVE_EN, OUTPUT);
@@ -75,7 +75,7 @@ void uArmClass::setup()
     #endif
 
     mCurStep = -1;
-    mTotalSteps = -1;    
+    mTotalSteps = -1;
 
 
 	uArm.moveTo(0, 150, 150);
@@ -90,7 +90,7 @@ void uArmClass::controllerRun()
 	if (mCurStep >= 0 && mCurStep < mTotalSteps)
 	{
 
-		if((millis() - mStartTime) >= (mCurStep * mTimePerStep)) 
+		if((millis() - mStartTime) >= (mCurStep * mTimePerStep))
 		{
 
             // ignore the point if cannot reach
@@ -113,16 +113,16 @@ void uArmClass::controllerRun()
                     mController.writeServoAngle(mPathX[mCurStep], mPathY[mCurStep], mPathZ[mCurStep]);
                 }
 			}
-              
+
             mCurStep++;
 
 
-           	if (mCurStep >= mTotalSteps)       
+           	if (mCurStep >= mTotalSteps)
            	{
            		mCurStep = -1;
-               
-           	}  
-		}	
+
+           	}
+		}
 	}
     else
     {
@@ -159,13 +159,13 @@ void uArmClass::recorderTick()
         {
                 mSysStatus = NORMAL_MODE;
                 mRecordAddr = 0;
-           
+
                 mController.attachAllServo();
 
         }
         break;
 
-    default: 
+    default:
         break;
     }
 
@@ -193,16 +193,16 @@ void uArmClass::systemRun()
         case LEARNING_MODE:
             //LEARNING_MODE_STOP is just used to notificate record() function to stop, once record() get it then change the sys_status to normal_mode
             mSysStatus = LEARNING_MODE_STOP;//do not detec if BT is connected here, will do it seperatly
-            
+
             mController.pumpOff();
-         
+
             break;
 
         default: break;
         }
     }
 
-    
+
 
     //check the button7 status-------------------------------------------------------------------------
     if (mButtonD7.longPressed())
@@ -220,14 +220,14 @@ void uArmClass::systemRun()
         case LOOP_PLAY_MODE:
             break;
 
-        case LEARNING_MODE: 
+        case LEARNING_MODE:
             break;
         }
     }
     else if (mButtonD7.clicked())
     {
         mButtonD7.clearEvent();
-            
+
     	//debugPrint("btnD7 down");
 
         switch(mSysStatus)
@@ -236,7 +236,7 @@ void uArmClass::systemRun()
         case NORMAL_BT_CONNECTED_MODE:
             mRecordAddr = 0;//recording/playing address
             mSysStatus = SINGLE_PLAY_MODE;  // or play just one time
-            
+
             break;
 
         case SINGLE_PLAY_MODE:
@@ -246,7 +246,7 @@ void uArmClass::systemRun()
             break;
 
         case LEARNING_MODE:
-       
+
             if (mController.pumpStatus())
             {
                 mController.pumpOff();
@@ -254,10 +254,10 @@ void uArmClass::systemRun()
             else
             {
                 mController.pumpOn();
-            }    
+            }
             break;
         }
-    } 
+    }
 
 
     if (mReportInterval > 0)
@@ -267,9 +267,9 @@ void uArmClass::systemRun()
             mReportStartTime = millis();
             gComm.reportPos();
         }
-      
+
     }
-	
+
 }
 
 void uArmClass::btDetect()
@@ -304,7 +304,7 @@ void uArmClass::tickTaskRun()
 #ifdef MKII
     mLed.tick();
     btDetect();
-#endif    
+#endif
 }
 
 void uArmClass::run()
@@ -313,20 +313,20 @@ void uArmClass::run()
 	controllerRun();
 	systemRun();
 
-    // if(mTime50ms != millis() % TICK_INTERVAL)   
+    // if(mTime50ms != millis() % TICK_INTERVAL)
     // {
     //     mTime50ms = millis() % TICK_INTERVAL;
     //     if(mTime50ms == 0)
     //     {
     //         tickTaskRun();
     //     }
-    // }    
+    // }
 
         if(millis() - mTickStartTime >= TICK_INTERVAL)
         {
             mTickStartTime = millis();
             tickTaskRun();
-        }    
+        }
 
 
         if (millis() - mTickRecorderTime >= 50)
@@ -373,14 +373,14 @@ bool uArmClass::play()
             else
             {
                 mController.pumpOff();
-            }   
+            }
         }
     }
     else
     {
 
         mController.pumpOff();
-         
+
         return false;
     }
 
@@ -447,7 +447,7 @@ void uArmClass::interpolate(double startVal, double endVal, double *interpVals, 
 
 unsigned char uArmClass::moveTo(double x, double y, double z, double speed)
 {
-	
+
 	double angleRot = 0, angleLeft = 0, angleRight = 0;
 	double curRot = 0, curLeft = 0, curRight = 0;
     double targetRot = 0;
@@ -464,7 +464,7 @@ unsigned char uArmClass::moveTo(double x, double y, double z, double speed)
 
     status = mController.coordianteToAngle(x, y, z, targetRot, targetLeft, targetRight);
 
-    debugPrint("moveTo status: %d, angle: %s, %s, %s\n", status, D(targetRot), D(targetLeft), D(targetRight));
+    debugPrint("yangjiaqing moveTo status: %d, angle: %s, %s, %s\n", status, D(targetRot), D(targetLeft), D(targetRight));
 
     if (status == OUT_OF_RANGE_NO_SOLUTION)
     {
@@ -545,7 +545,7 @@ unsigned char uArmClass::moveTo(double x, double y, double z, double speed)
     {
     	interpolate(curRot, targetRot, mPathX, totalSteps, INTERP_EASE_INOUT_CUBIC);
     	interpolate(curLeft, targetLeft, mPathY, totalSteps, INTERP_EASE_INOUT_CUBIC);
-    	interpolate(curRight, targetRight, mPathZ, totalSteps, INTERP_EASE_INOUT_CUBIC);    	
+    	interpolate(curRight, targetRight, mPathZ, totalSteps, INTERP_EASE_INOUT_CUBIC);
     }
 
     mPathX[totalSteps - 1] = targetRot;
@@ -553,7 +553,7 @@ unsigned char uArmClass::moveTo(double x, double y, double z, double speed)
     mPathZ[totalSteps - 1] = targetRight;
 
 
-#ifdef DEBUG 
+#ifdef DEBUG
     {
     	int i = 0;
 
@@ -562,7 +562,7 @@ unsigned char uArmClass::moveTo(double x, double y, double z, double speed)
     		debugPrint("step%d, x=%s, y=%s, z=%s\n", i, D(mPathX[i]), D(mPathY[i]), D(mPathZ[i]));
     	}
     }
-#endif   
+#endif
 
     mTimePerStep = timePerStep;
     mTotalSteps = totalSteps;
@@ -582,7 +582,7 @@ void uArmClass::interpolateEven(double startVal, double endVal, double *interpVa
     float t = (float)delta / steps;
     for (byte i = 1; i <= steps; i++)
     {
-       
+
         //*(interp_vals+f) = 10.0*(start_val + (3 * delta) * (t * t) + (-2 * delta) * (t * t * t));
         *(interpVals + i - 1) = 10.0 * (startVal + t * i);
     }
@@ -591,7 +591,7 @@ void uArmClass::interpolateEven(double startVal, double endVal, double *interpVa
 
 unsigned char uArmClass::moveToAngle(double targetRot, double targetLeft, double targetRight)
 {
-    
+
 
     double angleRot = 0, angleLeft = 0, angleRight = 0;
     double curRot = 0, curLeft = 0, curRight = 0;
@@ -684,7 +684,7 @@ unsigned char uArmClass::moveToAngle(double targetRot, double targetLeft, double
     {
         interpolateEven(curRot, targetRot, mPathX, totalSteps, INTERP_EASE_INOUT_CUBIC);
         interpolateEven(curLeft, targetLeft, mPathY, totalSteps, INTERP_EASE_INOUT_CUBIC);
-        interpolateEven(curRight, targetRight, mPathZ, totalSteps, INTERP_EASE_INOUT_CUBIC);        
+        interpolateEven(curRight, targetRight, mPathZ, totalSteps, INTERP_EASE_INOUT_CUBIC);
     }
 
     mPathX[totalSteps - 1] = targetRot;
@@ -692,7 +692,7 @@ unsigned char uArmClass::moveToAngle(double targetRot, double targetLeft, double
     mPathZ[totalSteps - 1] = targetRight;
 
 
-#ifdef DEBUG 
+#ifdef DEBUG
     {
         int i = 0;
 
@@ -701,7 +701,7 @@ unsigned char uArmClass::moveToAngle(double targetRot, double targetLeft, double
             debugPrint("step%d, x=%s, y=%s, z=%s\n", i, D(mPathX[i]), D(mPathY[i]), D(mPathZ[i]));
         }
     }
-#endif   
+#endif
 
     mTimePerStep = timePerStep;
     mTotalSteps = totalSteps;
@@ -719,4 +719,4 @@ bool uArmClass::isPowerPlugIn()
     else
         return false;
 }
-#endif 
+#endif

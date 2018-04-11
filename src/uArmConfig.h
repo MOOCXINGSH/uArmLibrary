@@ -18,7 +18,7 @@ int ardprintf(char *result, char *str, ...);
 // #define MKII
 #define METAL
 
-//#define DEBUG
+#define DEBUG
 
 
 //#define METAL_MOTOR
